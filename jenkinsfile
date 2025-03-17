@@ -1,23 +1,54 @@
 pipeline {
-    agent  any
-
+    agent any
     environment {
         DOCKER_TAG = "V.${BUILD_NUMBER}"
-        DOCKER_IMAGE_NAME = "myawesomeapp"
+        DOCKER_IMAGE_NAME = "myprojectapp"
         DOCKER_HUB_USERNAME = "hanifi01"
+        IMAGE_URL = "${DOCKER_HUB_USERNAME}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
     }
-
-
     stages {
-        stage('imageBuild'){
+        stage('imageBuild') {
             steps {
-                sh "docker build -t ${DOCKER_HUB_USERNAME}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG} ."
+                sh """
+                    docker build -t ${DOCKER_HUB_USERNAME}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG} .
+                """
             }
         }
-        stage('imagePush'){
+        stage('imagePush') {
             steps {
-                sh "docker push ${DOCKER_HUB_USERNAME}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
+                sh """
+                    docker push ${IMAGE_URL}
+                """
             }
         }
+        /*
+        stage('imageRemove') {
+            steps {
+                sh """
+                    docker rmi ${DOCKER_HUB_USERNAME}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
+                """
+            }
+        }
+        */
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
