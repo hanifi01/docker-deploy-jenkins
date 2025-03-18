@@ -28,20 +28,26 @@ if [ -d "$JENKINS_HOME" ]; then
   # Check if the tar command succeeded
   if [ $? -eq 0 ]; then
     echo "Backup created successfully: $BACKUP_FILE"
-
-    # Upload the backup to S3 (make sure AWS CLI is configured and available)
-    aws s3 cp "$BACKUP_DIR/$BACKUP_FILE" s3://your-s3-bucket-name/
-
-    # Check if the AWS CLI command succeeded
-    if [ $? -eq 0 ]; then
-      echo "Backup uploaded successfully to S3."
-    else
-      echo "Error uploading the backup to S3."
-    fi
   else
-    echo "Error creating the backup."
+    echo "Error creating the backup. Proceeding with the upload anyway..."
   fi
 else
-  echo "Jenkins home directory does not exist. Aborting backup."
-  exit 1
+  echo "Jenkins home directory does not exist. Skipping backup creation..."
+fi
+
+# Upload the backup to S3 (make sure AWS CLI is configured and available)
+if [ -f "$BACKUP_DIR/$BACKUP_FILE" ]; then
+  echo "Uploading backup to S3..."
+
+  # Upload to S3
+  aws s3 cp "$BACKUP_DIR/$BACKUP_FILE" s3://your-s3-bucket-name/
+
+  # Check if the AWS CLI command succeeded
+  if [ $? -eq 0 ]; then
+    echo "Backup uploaded successfully to S3."
+  else
+    echo "Error uploading the backup to S3. Please check your AWS credentials and S3 bucket permissions."
+  fi
+else
+  echo "No backup file found, skipping upload to S3."
 fi
