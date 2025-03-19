@@ -1,22 +1,31 @@
 pipeline {
-    agent any
+    agent  any
+
+    environment {
+        DOCKER_TAG = "V.${BUILD_NUMBER}"
+        DOCKER_IMAGE_NAME = "myawesomeapp"
+        DOCKER_HUB_USERNAME = "hanifi01"
+        IMAGE_URL = "${DOCKER_HUB_USERNAME}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
+    }
+
 
     stages {
-        stage('Build Docker Image') {
+        stage('imageBuild'){
             steps {
-                script {
-                    // Building the Docker image
-                    sh 'docker build -t myapp:latest .'
+                sh "docker build -t ${IMAGE_URL} ."
+            }
+        }
+        stage('imagePush'){
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-creds', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                    sh "echo $PASS | docker login -u $USER --password-stdin"
+                    sh "docker push ${IMAGE_URL}"
                 }
             }
         }
-
-        stage('Deploy to Docker') {
-            steps {
-                script {
-                    // Running the Docker container
-                    sh 'docker run -d -p 8080:80 myapp:latest'
-                }
+        stage('imageRemove'){
+            steps{
+                sh "docker rmi ${IMAGE_URL} "
             }
         }
     }
